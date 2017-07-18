@@ -23,7 +23,7 @@ env:
     - LIBJEMALLOC_DEB="libjemalloc1_3.5.1-2_amd64.deb"
     - LIBPCRE_DEB="libpcre3_8.31-2ubuntu2.3_amd64.deb"
     - VARNISH_DEB="varnish_4.1.0-1~trusty_amd64.deb"
-    - OSF_DB_PORT="5432"
+    # - OSF_DB_PORT="5432"
   matrix:
     - TEST_BUILD="osf"
     # - TEST_BUILD="else"
@@ -58,7 +58,7 @@ before_install:
       sed -i -e 's/#fsync.*/fsync = off/' /tmp/postgres/data/postgresql.conf
       sed -i -e 's/#synchronous_commit.*/synchronous_commit = off/' /tmp/postgres/data/postgresql.conf
       sed -i -e 's/#full_page_writes.*/full_page_writes = off/' /tmp/postgres/data/postgresql.conf
-      /tmp/postgres/usr/lib/postgresql/9.6/bin/postgres -k /tmp -D /tmp/postgres/data -p 5432 > /dev/null & export POSTGRES_PID=$!
+      /tmp/postgres/usr/lib/postgresql/9.6/bin/postgres -k /tmp -D /tmp/postgres/data > /dev/null & export POSTGRES_PID=$!
     # elasticsearch
     - |
       cd $HOME/.cache/downloads

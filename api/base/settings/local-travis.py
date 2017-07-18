@@ -1,18 +1,17 @@
 from .defaults import *  # noqa
 
 
-# DATABASES = {
-#     'default': {
-#         'CONN_MAX_AGE': 0,
-#         'ENGINE': 'osf.db.backends.postgresql',  # django.db.backends.postgresql
-#         'NAME': os.environ.get('OSF_DB_NAME', 'osf'),
-#         'USER': os.environ.get('OSF_DB_USER', 'postgres'),
-#         'PASSWORD': os.environ.get('OSF_DB_PASSWORD', ''),
-#         'HOST': os.environ.get('OSF_DB_HOST', '127.0.0.1'),
-#         'PORT': os.environ.get('OSF_DB_PORT', '54321'),
-#         'ATOMIC_REQUESTS': True,
-#     }
-# }
+DATABASES = {
+    'default': {
+        'CONN_MAX_AGE': 0,
+        'ENGINE': 'osf.db.backends.postgresql',  # django.db.backends.postgresql
+        'NAME': 'osf',
+        'USER': 'postgres',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'ATOMIC_REQUESTS': True,
+    }
+}
 
 VARNISH_SERVERS = ['http://127.0.0.1:8080']
 ENABLE_VARNISH = True
