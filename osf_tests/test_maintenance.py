@@ -11,6 +11,13 @@ from osf.models import MaintenanceState
 pytestmark = pytest.mark.django_db
 
 
+class TestMigrations(unittest.TestCase):
+
+    def test_make_migrations(self):
+        from django.core.management import call_command
+        call_command('makemigrations')
+
+
 class TestMaintenance(unittest.TestCase):
 
     def tearDown(self):

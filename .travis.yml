@@ -122,14 +122,6 @@ install:
     - pip install uritemplate.py==0.3.0
     - travis_retry invoke assets --dev
 
-before_script:
-    - psql -c 'create database osf;' -U postgres -p 5432
-    - |
-      if ! invoke make_migrations | grep -q "No changes detected"; then
-        echo "Build failed on makemigrations"
-        exit 1
-      fi
-
 # Run Python tests (core and addon) and JS tests
 script:
     - invoke test_travis_$TEST_BUILD -n 4

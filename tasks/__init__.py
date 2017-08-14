@@ -589,6 +589,7 @@ def test_travis_varnish(ctx):
     test_js(ctx)
     test_varnish(ctx)
 
+
 @task
 def karma(ctx, single=False, sauce=False, browsers=None):
     """Run JS tests with Karma. Requires PhantomJS to be installed."""
@@ -986,13 +987,6 @@ def clean(ctx, verbose=False):
 def usage(ctx):
     ctx.run('invoke --list')
 
-@task
-def make_migrations(ctx):
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'api.base.settings'
-    from website.app import init_app
-    init_app(routes=False, set_backends=True)
-    from django.core.management import call_command
-    call_command('makemigrations')
 
 ### Maintenance Tasks ###
 
