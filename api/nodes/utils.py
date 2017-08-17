@@ -21,6 +21,7 @@ def get_file_object(node, path, provider, request):
                 model = OsfStorageFolder
             else:
                 model = OsfStorageFile
+            # TODO: change me to user get_object_or_error to take self.request so select_for_update can be used
             obj = get_object_or_404(model, node=node.pk, _id=path.strip('/'))
         return obj
 

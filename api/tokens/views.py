@@ -76,6 +76,7 @@ class TokenDetail(JSONAPIBaseView, generics.RetrieveUpdateDestroyAPIView):
     # overrides RetrieveAPIView
     def get_object(self):
         try:
+            # TODO: change me to user get_object_or_error to take self.request so select_for_update can be used
             obj = ApiOAuth2PersonalToken.objects.get(_id=self.kwargs['_id'], is_active=True)
         except ApiOAuth2PersonalToken.DoesNotExist:
             raise NotFound

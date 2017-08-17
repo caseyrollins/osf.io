@@ -24,6 +24,7 @@ class ApplicationMixin(object):
     current URL. By default, fetches the current application based on the client_id kwarg.
     """
     def get_app(self):
+        # TODO: change me to user get_object_or_error to take self.request so select_for_update can be used
         app = get_object_or_404(ApiOAuth2Application, client_id=self.kwargs['client_id'], is_active=True)
         self.check_object_permissions(self.request, app)
         return app
