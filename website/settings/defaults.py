@@ -82,6 +82,7 @@ PREPRINT_PROVIDER_DOMAINS = {
 }
 # External Ember App Local Development
 USE_EXTERNAL_EMBER = False
+PROXY_EMBER_APPS = False
 EXTERNAL_EMBER_APPS = {}
 
 LOG_PATH = os.path.join(APP_PATH, 'logs')
@@ -250,7 +251,6 @@ ADDON_CATEGORIES = [
 ]
 
 SYSTEM_ADDED_ADDONS = {
-    # 'user': ['badges'],
     'user': [],
     'node': [],
 }
@@ -343,6 +343,9 @@ LOW_QUEUE = 'low'
 MED_QUEUE = 'med'
 HIGH_QUEUE = 'high'
 
+# Seconds, not an actual celery setting
+CELERY_RETRY_BACKOFF_BASE = 5
+
 LOW_PRI_MODULES = {
     'framework.analytics.tasks',
     'framework.celery_tasks',
@@ -396,15 +399,20 @@ else:
     CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
 
 # Default RabbitMQ broker
-BROKER_URL = 'amqp://'
+RABBITMQ_USERNAME = os.environ.get('RABBITMQ_USERNAME', 'guest')
+RABBITMQ_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
+RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST', 'localhost')
+RABBITMQ_PORT = os.environ.get('RABBITMQ_PORT', '5672')
+RABBITMQ_VHOST = os.environ.get('RABBITMQ_VHOST', '/')
+
+BROKER_URL = os.environ.get('BROKER_URL', 'amqp://{}:{}@{}:{}/{}'.format(RABBITMQ_USERNAME, RABBITMQ_PASSWORD, RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST))
 
 # Default RabbitMQ backend
-CELERY_RESULT_BACKEND = 'amqp://'
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', BROKER_URL)
 
 # Modules to import when celery launches
 CELERY_IMPORTS = (
     'framework.celery_tasks',
-    'framework.celery_tasks.signals',
     'framework.email.tasks',
     'website.mailchimp_utils',
     'website.notifications.tasks',
@@ -1351,7 +1359,6 @@ BLACKLISTED_DOMAINS = [
     'nowhere.org',
     'nowmymail.com',
     'nurfuerspam.de',
-    'nus.edu.sg',
     'nwldx.com',
     'objectmail.com',
     'obobbo.com',

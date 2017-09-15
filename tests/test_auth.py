@@ -8,7 +8,6 @@ import urlparse
 import httplib as http
 
 from flask import Flask
-from modularodm import Q
 from werkzeug.wrappers import BaseResponse
 
 from framework import auth
@@ -23,7 +22,7 @@ from osf_tests.factories import (
 
 from framework.auth import Auth
 from framework.auth.decorators import must_be_logged_in
-from osf.models import OSFUser as User, Session
+from osf.models import OSFUser, Session
 from website import mails
 from website import settings
 from website.util import permissions
@@ -49,7 +48,7 @@ class TestAuthUtils(OsfTestCase):
         user.middle_names = ''
         user.suffix = ''
         user.save()
-        resp = user.csl_name(user._id)
+        resp = user.csl_name()
         family_name = resp['family']
         given_name = resp['given']
         assert_equal(family_name, 'King')
@@ -109,16 +108,12 @@ class TestAuthUtils(OsfTestCase):
         assert_equal(res.status_code, 302)
         assert_equal('/', urlparse.urlparse(res.location).path)
         assert_equal(len(mock_mail.call_args_list), 1)
-        session = Session.find(
-            Q('data.auth_user_id', 'eq', user._id)
-        ).order_by(
-            '-date_modified'
-        ).first()
+        session = Session.objects.filter(data__auth_user_id=user._id).order_by('-date_modified').first()
         assert_equal(len(session.data['status']), 1)
 
     def test_get_user_by_id(self):
         user = UserFactory()
-        assert_equal(User.load(user._id), user)
+        assert_equal(OSFUser.load(user._id), user)
 
     def test_get_user_by_email(self):
         user = UserFactory()
@@ -261,7 +256,7 @@ class TestAuthObject(OsfTestCase):
 
     def test_factory(self):
         auth_obj = AuthFactory()
-        assert_true(isinstance(auth_obj.user, User))
+        assert_true(isinstance(auth_obj.user, OSFUser))
 
     def test_from_kwargs(self):
         user = UserFactory()

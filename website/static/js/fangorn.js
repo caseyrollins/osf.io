@@ -375,7 +375,7 @@ function inheritFromParent(item, parent, fields) {
         item.data[field] = item.data[field] || parent.data[field];
     });
 
-    if(item.data.provider === 'github'){
+    if(item.data.provider === 'github' || item.data.provider === 'bitbucket'){
         item.data.branch = parent.data.branch;
     }
 }
@@ -544,7 +544,7 @@ function doItemOp(operation, to, from, rename, conflict) {
     }
 
     var options = {};
-    if(from.data.provider === 'github'){
+    if(from.data.provider === 'github' || from.data.provider === 'bitbucket'){
         options.branch = from.data.branch;
         moveSpec.branch = from.data.branch;
     }
@@ -2519,7 +2519,8 @@ function allowedToMove(folder, item, mustBeIntra) {
     return (
         item.data.permissions.edit &&
         (!mustBeIntra || (item.data.provider === folder.data.provider && item.data.nodeId === folder.data.nodeId)) &&
-            !(item.data.provider === 'figshare' && item.data.extra && item.data.extra.status === 'public')
+        !(item.data.provider === 'figshare' && item.data.extra && item.data.extra.status === 'public') &&
+        (item.data.provider !== 'bitbucket')
     );
 }
 
@@ -2676,10 +2677,12 @@ tbOptions = {
         up : 'i.fa.fa-chevron-up',
         down : 'i.fa.fa-chevron-down'
     },
+    ondataload: function() {
+        _loadTopLevelChildren.call(this);
+    },
     onload : function () {
         var tb = this;
         tb.options.onload = null;  // Make sure we don't get called again
-        _loadTopLevelChildren.call(tb);
         tb.uploadStates = [];
         tb.pendingFileOps = [];
         tb.select('#tb-tbody, .tb-tbody-inner').on('click', function(event){
