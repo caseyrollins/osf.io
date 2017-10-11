@@ -4,13 +4,16 @@ formatted hgrid list/folders.
 """
 import logging
 
-import hurry.filesize
+from collections import defaultdict
+from django.apps import apps
+from django.db import connection
+from django.db.models import Exists, OuterRef, Subquery
 from django.utils import timezone
+import hurry.filesize
 
 from framework import sentry
 from framework.auth.decorators import Auth
 
-from django.apps import apps
 
 from website import settings
 from website.util import paths
@@ -166,28 +169,12 @@ class NodeFileCollector(object):
         root = self._serialize_node(self.node)
         return [root]
 
-    def _collect_components(self, node, visited):
-        rv = []
-        if not node.can_view(self.auth):
-            return rv
-        for child in node.get_nodes(is_deleted=False):
-            if not child.can_view(self.auth):
-                if child.primary:
-                    for desc in child.find_readable_descendants(self.auth):
-                        visited.append(desc.resolve()._id)
-                        rv.append(self._serialize_node(desc, visited=visited, parent=node))
-            elif child.resolve()._id not in visited:
-                visited.append(child.resolve()._id)
-                rv.append(self._serialize_node(child, visited=visited, parent=node))
-        return rv
-
-    def _get_node_name(self, node):
+    def _get_node_name(self, node, can_view):
         """Input node object, return the project name to be display.
         """
         NodeRelation = apps.get_model('osf.NodeRelation')
         is_node_relation = isinstance(node, NodeRelation)
         node = node.child if is_node_relation else node
-        can_view = node.can_view(auth=self.auth)
 
         if can_view:
             node_name = sanitize.unescape_entities(node.title)
@@ -202,38 +189,96 @@ class NodeFileCollector(object):
 
         return node_name
 
+    def _collect_components(self, node, visited):
+        rv = []
+        for child in node.get_nodes(is_deleted=False):
+            if not child.can_view(self.auth):
+                if child.primary:
+                    for desc in child.find_readable_descendants(self.auth):
+                        visited.append(desc._id)
+                        rv.append(self._serialize_node(desc, visited=visited, parent=node))
+            elif child._id not in visited:
+                visited.append(child._id)
+                rv.append(self._serialize_node(child, visited=visited, parent=node))
+        return rv
+
+    def _serialize_node_child(self, child_list, nested, can_view, parent=None):
+        serialized_nodes = []
+
+        print('MID QUERIES: {}'.format(len(connection.queries)))
+
+        for node in child_list:
+            serialized_nodes.append({
+                # TODO: Remove safe_unescape_html when mako html safe comes in
+                'name': self._get_node_name(node, can_view=can_view),
+                'category': node.category,
+                'kind': FOLDER,
+                'permissions': {
+                    'edit': node.has_write_perm and not node.is_registration,
+                    'view': can_view,
+                },
+                'urls': {
+                    'upload': None,
+                    'fetch': None,
+                },
+                'children': self._collect_addons(node) + self._serialize_node_child(nested.get(node._id), nested, True) if node._id in nested.keys() else self._collect_addons(node),
+                # 'children': self._serialize_node_child(nested.get(node._id), nested, True) if node._id in nested.keys() else [],
+                'isPointer': parent and node.is_pointer,
+                'isSmartFolder': False,
+                'nodeType': 'project' if not node.parentnode_id else 'component',
+                # 'nodeID': node._id,
+            })
+
+        return serialized_nodes
+
     def _serialize_node(self, node, visited=None, parent=None):
         """Returns the rubeus representation of a node folder.
         """
-        visited = visited or []
-        visited.append(node.resolve()._id)
-        can_view = node.can_view(auth=self.auth)
-        if can_view:
-            children = self._collect_addons(node) + self._collect_components(node, visited)
-        else:
-            children = []
 
+        print('BEGIN QUERIES: {}'.format(len(connection.queries)))
+
+        from osf.models import AbstractNode, Contributor, NodeRelation
+
+        can_write_sqs = Contributor.objects.filter(node=OuterRef('pk'), write=True, user=self.auth.user)
+        is_pointer_sqs = NodeRelation.objects.filter(child=OuterRef('pk'), is_node_link=True)
+        parent_node_sqs = NodeRelation.objects.filter(child=OuterRef('pk'), is_node_link=False).values('parent__guids___id')
+        children = (AbstractNode.objects.get_children(node)
+                    .filter(is_deleted=False)
+                    .can_view(user=self.auth.user)
+                    .annotate(parentnode_id=Subquery(parent_node_sqs[:1]))
+                    .annotate(has_write_perm=Exists(can_write_sqs))
+                    .annotate(is_pointer=Exists(is_pointer_sqs))
+                    )
+
+        nested = defaultdict(list)
+        for child in children:
+            nested[child.parentnode_id].append(child)
+
+        can_view = node.can_view(auth=self.auth)
+        can_edit = node.has_permission(self.auth.user, 'write')
         is_pointer = parent and parent.has_node_link_to(node)
 
-        return {
+        item = {
             # TODO: Remove safe_unescape_html when mako html safe comes in
-            'name': self._get_node_name(node),
+            'name': self._get_node_name(node, can_view),
             'category': node.category,
             'kind': FOLDER,
             'permissions': {
-                'edit': node.can_edit(self.auth) and not node.is_registration,
+                'edit': can_edit and not node.is_registration,
                 'view': can_view,
             },
             'urls': {
                 'upload': None,
                 'fetch': None,
             },
-            'children': children,
+            'children': self._serialize_node_child(nested.get(node._id), nested, can_view, parent),
             'isPointer': is_pointer,
             'isSmartFolder': False,
             'nodeType': node.project_or_component,
-            'nodeID': node.resolve()._id,
+            'nodeID': node._id,
         }
+        print('END QUERIES: {}'.format(len(connection.queries)))
+        return item
 
     def _collect_addons(self, node):
         rv = []

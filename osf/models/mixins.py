@@ -172,6 +172,8 @@ class AddonModelMixin(models.Model):
         return self.add_addon(name, *args, **kwargs)
 
     def get_addon(self, name, deleted=False):
+        from django.db import connection
+        # print('NUM QUERIES GET ADDON self ({}) addon ({}): {}'.format(self, name, len(connection.queries)))
         try:
             settings_model = self._settings_model(name)
         except LookupError:
