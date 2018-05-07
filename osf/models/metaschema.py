@@ -4,6 +4,8 @@ import jsonschema
 
 from website.util import api_v2_url
 
+from api.metadata.formatters import FileMetadataFormatter
+
 from osf.models.base import BaseModel, ObjectIDMixin
 from osf.utils.datetime_aware_jsonfield import DateTimeAwareJSONField
 from osf.exceptions import ValidationValueError
@@ -11,7 +13,8 @@ from osf.exceptions import ValidationValueError
 from website.project.metadata.utils import create_jsonschema_from_metaschema
 
 
-class MetaSchema(ObjectIDMixin, BaseModel):
+class AbstractMetaSchema(ObjectIDMixin, BaseModel):
+
     name = models.CharField(max_length=255)
     schema = DateTimeAwareJSONField(default=dict)
     category = models.CharField(max_length=255, null=True, blank=True)
@@ -21,7 +24,39 @@ class MetaSchema(ObjectIDMixin, BaseModel):
     schema_version = models.IntegerField()
 
     class Meta:
+        abstract = True
         unique_together = ('name', 'schema_version')
+
+    def validate_metadata(self, metadata, reviewer=False, required_fields=False):
+        """
+        Validates registration_metadata field.
+        """
+        schema = create_jsonschema_from_metaschema(self.schema,
+                                                   required_fields=required_fields,
+                                                   is_reviewer=reviewer)
+        try:
+            jsonschema.validate(metadata, schema)
+        except jsonschema.ValidationError as e:
+            raise ValidationValueError(e.message)
+        except jsonschema.SchemaError as e:
+            raise ValidationValueError(e.message)
+        return
+
+
+class FileMetadataMetaSchema(AbstractMetaSchema):
+
+    @property
+    def formatter(self):
+        for formatter in FileMetadataFormatter.__subclasses__():
+            if formatter.metaschema_id == self._id:
+                return formatter
+
+    @property
+    def absolute_api_v2_url(self):
+        path = '/metaschemas/files/{}/'.format(self._id)
+        return api_v2_url(path)
+
+class RegistrationMetaSchema(AbstractMetaSchema):
 
     def __unicode__(self):
         return '(name={}, schema_version={}, id={})'.format(self.name, self.schema_version, self.id)
@@ -61,18 +96,3 @@ class MetaSchema(ObjectIDMixin, BaseModel):
             name='Prereg Challenge',
             schema_version=2
         )
-
-    def validate_metadata(self, metadata, reviewer=False, required_fields=False):
-        """
-        Validates registration_metadata field.
-        """
-        schema = create_jsonschema_from_metaschema(self.schema,
-                                                   required_fields=required_fields,
-                                                   is_reviewer=reviewer)
-        try:
-            jsonschema.validate(metadata, schema)
-        except jsonschema.ValidationError as e:
-            raise ValidationValueError(e.message)
-        except jsonschema.SchemaError as e:
-            raise ValidationValueError(e.message)
-        return

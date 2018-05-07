@@ -1,0 +1,106 @@
+{
+    "version": 1,
+    "type": "object",
+    "_id": "datacite",
+    "category": "file",
+    "title": "Datacite",
+    "properties" : {
+        "creators": {
+            "type": "array",
+            "readOnly": true
+        },
+        "date_available": {
+            "type": "string",
+            "readOnly": true
+        },
+        "date_modified": {
+            "type": "string",
+            "readOnly": true
+        },
+        "description" : {
+            "type": "string",
+            "readOnly": false
+        },
+        "funding_agency" : {
+            "type" : "string",
+            "readOnly": false
+        },
+        "grant_number": {
+            "type" : "string",
+            "readOnly": false
+        },
+        "identifier" : {
+            "type": "string",
+            "readOnly": true
+        },
+        "license": {
+            "type": "string",
+            "readOnly": true
+        },
+        "name" : {
+            "type" : "string",
+            "readOnly": false
+        },
+        "publication_year": {
+            "type": "number",
+            "readOnly": true
+        },
+        "publisher": {
+            "type": "string",
+            "readOnly": true
+        },
+        "related_publication_doi": {
+            "type": "string",
+            "readOnly": false
+        },
+        "resource_type": {
+            "type": "string",
+            "readOnly": false,
+            "enum": [
+                "Audio/Video",
+                "Dataset",
+                "Image",
+                "Model",
+                "Software",
+                "Book",
+                "Funding Submission",
+                "Journal Article",
+                "Lesson",
+                "Poster",
+                "Preprint",
+                "Presentation",
+                "Research Tool",
+                "Thesis",
+                "Other",
+            ]
+        },
+        "subjects": {
+            "type": "array",
+            "readOnly": true
+        },
+        "title": {
+            "type" : "string",
+            "readOnly": true
+        },
+        "version": {
+            "type": "number",
+            "readOnly": true
+        },
+    },
+    "not": {
+        "anyOf": [
+            {"required": ["creators"]},
+            {"required": ["date_available"]},
+            {"required": ["date_modified"]},
+            {"required": ["identifier"]},
+            {"required": ["license"]},
+            {"required": ["publication_year"]},
+            {"required": ["publisher"]},
+            {"required": ["subjects"]},
+            {"required": ["title"]},
+            {"required": ["version"]},
+
+        ]
+    }
+}
+
