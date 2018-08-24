@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'guardian',
     'storages',
     'waffle',
+    'groups_manager',
 
     # OSF
     'osf',
@@ -283,3 +284,18 @@ ANONYMOUS_USER_NAME = None
 
 # If set to True, automated tests with extra queries will fail.
 NPLUSONE_RAISE = False
+
+# django-groups-manager
+
+GROUPS_MANAGER = {
+    # User and Groups sync settings
+    'AUTH_MODELS_SYNC': True,
+    # Permissions
+    'PERMISSIONS': {
+        'owner': [],
+        'group': [],
+        'groups_upstream': [],
+        'groups_downstream': [],
+        'groups_siblings': [],
+    },
+}

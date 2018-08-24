@@ -22,6 +22,7 @@ from django.db.models.aggregates import Max
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
+from groups_manager.models import Group
 from keen import scoped_keys
 from psycopg2._psycopg import AsIs
 from typedmodels.models import TypedModel, TypedModelManager
@@ -327,6 +328,12 @@ class AbstractNode(DirtyFieldsMixin, TypedModel, AddonModelMixin, IdentifierMixi
     class Meta:
         base_manager_name = 'objects'
         index_together = (('is_public', 'is_deleted', 'type'))
+        permissions = (
+            ('view_node', 'Can see node details in the admin app'),
+            ('read_node', 'Can read the node'),
+            ('write_node', 'Can write the node'),
+            ('admin_node', 'Can manage the node'),
+        )
 
     objects = AbstractNodeManager()
 
@@ -2364,6 +2371,18 @@ def remove_addons(auth, resource_object_list):
 
 
 ##### Signal listeners #####
+@receiver(post_save, sender=Node)
+def add_groups(sender, instance, created, **kwargs):
+    if created:
+        read = Group.objects.create(name='node:{}:read'.format(instance.id))
+        write = Group.objects.create(name='node:{}:write'.format(instance.id))
+        admin = Group.objects.create(name='node:{}:admin'.format(instance.id), parent=instance.parent_node)
+
+        read.assign_object(instance, custom_permissions={'group': ['read_node']})
+        write.assign_object(instance, custom_permissions={'group': ['read_node', 'write_node']})
+        admin.assign_object(instance, custom_permissions={'group': ['read_node', 'write_node', 'admin_node'], 'groups_upstream': ['read_node']})
+
+
 @receiver(post_save, sender=Node)
 @receiver(post_save, sender='osf.QuickFilesNode')
 def add_creator_as_contributor(sender, instance, created, **kwargs):

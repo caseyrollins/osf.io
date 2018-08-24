@@ -25,6 +25,7 @@ from django.db import models
 from django.db.models import Count
 from django.db.models.signals import post_save
 from django.utils import timezone
+from groups_manager.models import Member
 
 from framework.auth import Auth, signals, utils
 from framework.auth.core import generate_verification_key
@@ -1617,6 +1618,17 @@ class OSFUser(DirtyFieldsMixin, GuidMixin, BaseModel, AbstractBaseUser, Permissi
         permissions = (
             ('view_osfuser', 'Can view user details'),
         )
+
+
+@receiver(post_save, sender=OSFUser)
+def create_member(sender, instance, created, **kwargs):
+    if created:
+        Member.objects.create(
+            first_name=instance.fullname,
+            last_name=instance.fullname,
+            django_user=instance
+        )
+
 
 @receiver(post_save, sender=OSFUser)
 def add_default_user_addons(sender, instance, created, **kwargs):

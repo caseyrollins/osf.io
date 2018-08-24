@@ -73,6 +73,7 @@ pycparser==2.18
 pyjwe==1.0.0
 jsonschema==2.6.0
 django-guardian==1.4.9
+django-groups-manager==0.6.1
 
 # Admin requirements
 django-webpack-loader==0.5.0
