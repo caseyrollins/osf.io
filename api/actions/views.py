@@ -13,8 +13,8 @@ from api.base.exceptions import Conflict
 from api.base.filters import ListFilterMixin
 from api.base.views import JSONAPIBaseView
 from api.base.parsers import (
-    JSONAPIMultipleRelationshipsParser,
-    JSONAPIMultipleRelationshipsParserForRegularJSON,
+    JSONAPIParser,
+    JSONAPIParserForRegularJSON,
 )
 from api.base import permissions as base_permissions
 from api.base.utils import absolute_reverse
@@ -141,7 +141,7 @@ class ReviewActionListCreate(JSONAPIBaseView, generics.ListCreateAPIView, ListFi
     required_read_scopes = [CoreScopes.ACTIONS_READ]
     required_write_scopes = [CoreScopes.NULL]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
     serializer_class = ReviewActionSerializer
     model_class = ReviewAction
 
@@ -184,7 +184,7 @@ class NodeRequestActionCreate(JSONAPIBaseView, generics.CreateAPIView, NodeReque
     required_read_scopes = [CoreScopes.NULL]
     required_write_scopes = [CoreScopes.ACTIONS_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
     serializer_class = NodeRequestActionSerializer
 
     view_category = 'request-actions'
@@ -207,7 +207,7 @@ class PreprintRequestActionCreate(JSONAPIBaseView, generics.CreateAPIView, Prepr
     required_read_scopes = [CoreScopes.NULL]
     required_write_scopes = [CoreScopes.ACTIONS_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
     serializer_class = PreprintRequestActionSerializer
 
     view_category = 'request-actions'

@@ -29,9 +29,7 @@ class JSONAPIParser(JSONParser):
         if not target_type:
             raise JSONAPIException(source={'pointer': 'data/relationships/{}/data/type'.format(related_resource)},
                                    detail=NO_TYPE_ERROR)
-
-        id = data.get('id')
-        return {'id': id, 'target_type': target_type}
+        return data.get('id')
 
     # Overrides JSONParser
     def flatten_relationships(self, relationships):
@@ -43,19 +41,20 @@ class JSONAPIParser(JSONParser):
         if not isinstance(relationships, dict):
             raise ParseError()
 
-        # Can only create one type of relationship.
-        related_resource = relationships.keys()[0]
-        if not isinstance(relationships[related_resource], dict) or related_resource == 'data':
-            raise ParseError()
-        data = relationships[related_resource].get('data')
+        res = {}
+        for related_resource in relationships:
+            if not isinstance(relationships[related_resource], dict) or related_resource == 'data':
+                raise ParseError()
+            data = relationships[related_resource].get('data')
 
-        if not data:
-            raise JSONAPIException(source={'pointer': 'data/relationships/{}/data'.format(related_resource)}, detail=NO_DATA_ERROR)
+            if not data:
+                raise JSONAPIException(source={'pointer': 'data/relationships/{}/data'.format(related_resource)}, detail=NO_DATA_ERROR)
 
-        if isinstance(data, list):
-            return [self.get_relationship(item, related_resource) for item in data]
-        else:
-            return self.get_relationship(data, related_resource)
+            if isinstance(data, list):
+                res[related_resource] = [self.get_relationship(item, related_resource) for item in data]
+            else:
+                res[related_resource] = self.get_relationship(data, related_resource)
+        return res
 
     def flatten_data(self, resource_object, parser_context, is_list):
         """
@@ -224,31 +223,6 @@ class JSONAPIOnetoOneRelationshipParserForRegularJSON(JSONAPIOnetoOneRelationshi
     Allows same processing as JSONAPIRelationshipParser to occur for requests with application/json media type.
     """
     media_type = 'application/json'
-
-
-class JSONAPIMultipleRelationshipsParser(JSONAPIParser):
-    def flatten_relationships(self, relationships):
-        rel = {}
-        for resource in relationships:
-            ret = super(JSONAPIMultipleRelationshipsParser, self).flatten_relationships({resource: relationships[resource]})
-            if isinstance(ret, list):
-                rel[resource] = []
-                for item in ret:
-                    if item.get('target_type') and item.get('id'):
-                        rel[resource].append(item['id'])
-            else:
-                if ret.get('target_type') and ret.get('id'):
-                    rel[resource] = ret['id']
-        return rel
-
-
-class JSONAPIMultipleRelationshipsParserForRegularJSON(JSONAPIParserForRegularJSON):
-    def flatten_relationships(self, relationships):
-        ret = super(JSONAPIMultipleRelationshipsParserForRegularJSON, self).flatten_relationships(relationships)
-        related_resource = relationships.keys()[0]
-        if ret.get('target_type') and ret.get('id'):
-            return {related_resource: ret['id']}
-        return ret
 
 
 class HMACSignedParser(JSONParser):

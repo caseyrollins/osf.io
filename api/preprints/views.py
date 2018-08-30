@@ -15,8 +15,8 @@ from api.base.exceptions import Conflict
 from api.base.views import JSONAPIBaseView, WaterButlerMixin
 from api.base.filters import ListFilterMixin, PreprintFilterMixin
 from api.base.parsers import (
-    JSONAPIMultipleRelationshipsParser,
-    JSONAPIMultipleRelationshipsParserForRegularJSON,
+    JSONAPIParser,
+    JSONAPIParserForRegularJSON,
 )
 from api.base.utils import absolute_reverse, get_user_auth
 from api.base import permissions as base_permissions
@@ -71,7 +71,7 @@ class PreprintList(JSONAPIBaseView, generics.ListCreateAPIView, PreprintFilterMi
         ContributorOrPublic,
     )
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
 
     required_read_scopes = [CoreScopes.NODE_PREPRINTS_READ]
     required_write_scopes = [CoreScopes.NODE_PREPRINTS_WRITE]
@@ -111,8 +111,8 @@ class PreprintDetail(JSONAPIBaseView, generics.RetrieveUpdateDestroyAPIView, Pre
         PreprintPublishedOrAdmin,
     )
     parser_classes = (
-        JSONAPIMultipleRelationshipsParser,
-        JSONAPIMultipleRelationshipsParserForRegularJSON,
+        JSONAPIParser,
+        JSONAPIParserForRegularJSON,
     )
 
     required_read_scopes = [CoreScopes.NODE_PREPRINTS_READ]
@@ -304,7 +304,7 @@ class PreprintActionList(JSONAPIBaseView, generics.ListCreateAPIView, ListFilter
     required_read_scopes = [CoreScopes.ACTIONS_READ]
     required_write_scopes = [CoreScopes.ACTIONS_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
     serializer_class = ReviewActionSerializer
     model_class = ReviewAction
 
@@ -346,7 +346,7 @@ class PreprintRequestListCreate(JSONAPIBaseView, generics.ListCreateAPIView, Lis
     required_read_scopes = [CoreScopes.PREPRINT_REQUESTS_READ]
     required_write_scopes = [CoreScopes.PREPRINT_REQUESTS_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
 
     serializer_class = PreprintRequestSerializer
 

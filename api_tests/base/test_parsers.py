@@ -1,6 +1,6 @@
 import pytest
 
-from api.base.parsers import JSONAPIMultipleRelationshipsParser
+from api.base.parsers import JSONAPIParser
 
 
 SINGLE_RELATIONSHIP = {
@@ -87,7 +87,7 @@ MULTIPLE_MULTIPLE_RELATIONSHIPS = {
 }
 
 
-class TestMultipleRelationshipsParser:
+class TestJSONAPIParser:
 
     @pytest.mark.parametrize('relationship,expected',
     [
@@ -97,6 +97,6 @@ class TestMultipleRelationshipsParser:
         (MULTIPLE_SINGLE_RELATIONSHIPS, {'node': 'abcde', 'provider': 'agrixiv'}),
         (MULTIPLE_MULTIPLE_RELATIONSHIPS, {'affiliated_institutions': ['cos', 'ljaf'], 'providers': ['agrixiv', 'osfpreprints']}),
     ])
-    def test_flatten_relationships(self, relationship, expected):
-        parser = JSONAPIMultipleRelationshipsParser()
-        assert JSONAPIMultipleRelationshipsParser.flatten_relationships(parser, relationship) == expected
+    def test_flatten_multiple_relationships(self, relationship, expected):
+        parser = JSONAPIParser()
+        assert JSONAPIParser.flatten_relationships(parser, relationship) == expected

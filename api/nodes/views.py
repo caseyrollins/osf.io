@@ -27,10 +27,10 @@ from api.base.exceptions import (
 from api.base.filters import ListFilterMixin, PreprintFilterMixin
 from api.base.pagination import CommentPagination, NodeContributorPagination, MaxSizePagination
 from api.base.parsers import (
+    JSONAPIParser,
+    JSONAPIParserForRegularJSON,
     JSONAPIRelationshipParser,
     JSONAPIRelationshipParserForRegularJSON,
-    JSONAPIMultipleRelationshipsParser,
-    JSONAPIMultipleRelationshipsParserForRegularJSON,
 )
 from api.base.settings import ADDONS_OAUTH, API_BASE
 from api.base.throttling import (
@@ -193,7 +193,7 @@ class NodeList(JSONAPIBaseView, bulk_views.BulkUpdateJSONAPIView, bulk_views.Bul
     required_write_scopes = [CoreScopes.NODE_BASE_WRITE]
     model_class = apps.get_model('osf.AbstractNode')
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
     serializer_class = NodeSerializer
     view_category = 'nodes'
     view_name = 'node-list'
@@ -332,7 +332,7 @@ class NodeDetail(JSONAPIBaseView, generics.RetrieveUpdateDestroyAPIView, NodeMix
     required_read_scopes = [CoreScopes.NODE_BASE_READ]
     required_write_scopes = [CoreScopes.NODE_BASE_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
 
     serializer_class = NodeDetailSerializer
     view_category = 'nodes'
@@ -1903,7 +1903,7 @@ class NodePreprintsList(JSONAPIBaseView, generics.ListAPIView, NodeMixin, Prepri
         base_permissions.TokenHasScope,
         ContributorOrPublic,
     )
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
 
     required_read_scopes = [CoreScopes.NODE_PREPRINTS_READ]
     required_write_scopes = [CoreScopes.NODE_PREPRINTS_WRITE]
@@ -1937,7 +1937,7 @@ class NodeRequestListCreate(JSONAPIBaseView, generics.ListCreateAPIView, ListFil
     required_read_scopes = [CoreScopes.NODE_REQUESTS_READ]
     required_write_scopes = [CoreScopes.NODE_REQUESTS_WRITE]
 
-    parser_classes = (JSONAPIMultipleRelationshipsParser, JSONAPIMultipleRelationshipsParserForRegularJSON,)
+    parser_classes = (JSONAPIParser, JSONAPIParserForRegularJSON,)
 
     serializer_class = NodeRequestSerializer
 
