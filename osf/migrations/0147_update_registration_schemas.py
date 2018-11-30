@@ -16,13 +16,10 @@ def remove_version_1_schemas(state, schema):
     assert RegistrationSchema.objects.filter(schema_version=1, draftregistration__isnull=False).count() == 0
     RegistrationSchema.objects.filter(schema_version=1).delete()
 
-def set_invisible_schemas(state, schema):
+def update_schemas(state, schema):
     RegistrationSchema = state.get_model('osf', 'registrationschema')
-    RegistrationSchema.objects.filter(name__in=V2_INVISIBLE_SCHEMAS).update(visible=False)
-
-def unset_invisible_schemas(state, schema):
-    RegistrationSchema = state.get_model('osf', 'registrationschema')
-    RegistrationSchema.objects.filter(name__in=V2_INVISIBLE_SCHEMAS).update(visible=True)
+    RegistrationSchema.objects.filter(name__in=V2_INVISIBLE_SCHEMAS).update(visible=False, active=False)
+    RegistrationSchema.objects.filter(name='Election Research Preacceptance Competition').update(active=False)
 
 def noop(*args, **kwargs):
     pass
@@ -36,5 +33,5 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(remove_version_1_schemas, noop),
-        migrations.RunPython(set_invisible_schemas, unset_invisible_schemas),
+        migrations.RunPython(update_schemas, noop),
     ]
